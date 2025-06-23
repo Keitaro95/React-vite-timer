@@ -1,0 +1,99 @@
+name: CI / CD Pipeline
+
+on:
+  push:
+    branches:
+      - development
+      - stage
+      - main
+  workflow_dispatch:
+
+jobs:
+  # development ブランチ向け
+  dev:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit tests
+        run: npm test
+      - name: Local deploy (Docker run)
+        run: |
+          docker build -t local-dev:${GITHUB_SHA} .
+          docker run -d --name local-dev -p 8080:8080 local-dev:${GITHUB_SHA}
+
+  # stage ブランチ向け
+  stage:
+    if: github.ref == 'refs/heads/stage'
+    runs-on: ubuntu-latest
+    environment: stage
+    needs: dev
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run integration tests
+        run: npm run test:integration
+      - name: GCP Auth
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SA_STAGE }}
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: '${{ vars.REGION }}-docker.pkg.dev'
+          username: 'oauth2accesstoken'
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Build & push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPO }}/my-service-stage:${{ github.sha }}
+      - name: Deploy to Cloud Run (stage)
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: my-service-stage
+          region: ${{ vars.REGION }}
+          image: ${{ vars.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPO }}/my-service-stage:${{ github.sha }}
+
+  # main ブランチ向け
+  prod:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    needs: stage
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run smoke tests
+        run: npm run test:smoke
+      - name: GCP Auth
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SA_PROD }}
+      - name: Docker login
+        uses: docker/login-action@v1
+        with:
+          registry: '${{ vars.REGION }}-docker.pkg.dev'
+          username: 'oauth2accesstoken'
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Build & push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPO }}/my-service-prod:${{ github.sha }}
+      - name: Deploy to Cloud Run (prod)
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: my-service-prod
+          region: ${{ vars.REGION }}
+          image: ${{ vars.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPO }}/my-service-prod:${{ github.sha }}

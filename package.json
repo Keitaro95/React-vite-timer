@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "deploy:dev":   "gh workflow run ci-cd.yml --ref development",
+    "deploy:stage": "gh workflow run ci-cd.yml --ref stage",
+    "deploy:prod":  "gh workflow run ci-cd.yml --ref main"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.21.0",
