@@ -5,7 +5,7 @@
 import React, { Children, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from "../../store/store";
-import { startEdit, updateInput, cancelEdit } from '../TimeEdit/edit.slice';
+import { startEdit, updateInput, cancelEdit } from './TimeEdit.slice';
 import { Toast, ToastPortal } from '../ToastPortal/Toast';
 
 
