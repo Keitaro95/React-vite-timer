@@ -1,0 +1,14 @@
+# 開発ステージ
+FROM node:18-alpine
+WORKDIR /app
+
+# package.json だけ先にコピーしてキャッシュ
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Vite dev サーバー用に公開
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

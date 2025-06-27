@@ -1,3 +1,7 @@
+// Firebase Functions の req/resp を、
+// Hono が扱える Request/Response に変換して → 処理して → 結果を元に戻して返す。
+// カスタム関数
+
 import type { Response } from "express";
 import { Request as FunctionRequest } from "firebase-functions/v2/https";
 import { Hono } from "hono";
