@@ -1,11 +1,38 @@
-// RESTapi処理を書きます
-import { Hono } from "hono";
+// // server.ts
+// // RESTapi処理を書きます
 
-const app = new Hono();
+// import { createHonoNodeServer } from '@resolid/react-router-hono/node-server'
+// import * as router from '@react-router/dev/server';
 
-app.get("/", (c) => c.text("hello, world!"));
 
-export default app;
+// export default await createHonoNodeServer({
+//     routesModule: router,
+//     getLoadContext() => ({}),
+//     configure(honoApp) {
+//         honoApp.use('X-Powered-By', 'Hono + React Router')
+//         return next()
+//     })
+//     honoApp.get('/api', (c) => c.json({message: 'Hello from Hono!'}))
+
+import { Hono } from 'hono'
+import { createHonoNodeServer } from '@resolid/react-router-hono/node-server'
+import * as router from '@react-router/dev/server'
+import { api }  from './index'
+
+const app = new Hono()
+
+app.route('/', api);
+
+// app を明示的に渡す
+export default await createHonoNodeServer({
+  app,
+  routesModule: router,
+  getLoadContext: () => ({}),
+  configure(honoApp) {
+    honoApp.get('/api', (c) => c.json({ message: 'Hello from Hono!' }))
+  },
+})
+
 
 
 
