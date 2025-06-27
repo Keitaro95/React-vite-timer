@@ -12,6 +12,7 @@ import { ToastPortal, Toast } from "../ToastPortal/Toast"
 
 
 export default function TimerPage() {
+    console.log("🔔 TimerPage render");
     // hooks/useTimer ここで全て使う
     const {
         seconds,
@@ -80,10 +81,3 @@ export default function TimerPage() {
         </div>
     )
 }
-
-
-
-
-
-
-

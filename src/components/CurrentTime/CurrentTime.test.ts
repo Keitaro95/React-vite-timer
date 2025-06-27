@@ -1,6 +1,6 @@
 // API fetch test with mock api server
 import { render, screen } from "@testing-library/react";
-import { GetCurrentHHMM } from "./api";
+import { GetCurrentHHMM } from "./timeServiceApi";
 import { ENDPOINT_URL } from "../Example";
 import axios from "axios";
 

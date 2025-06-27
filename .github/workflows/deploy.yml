@@ -1,0 +1,76 @@
+# .github/workflows/deploy.yml
+name: CI / CD Pipeline
+
+on:
+  push:
+    branches:
+      - development
+      - stage
+      - main
+  workflow_dispatch:
+
+jobs:
+  # 1) development ブランチ：ユニットテスト＋ローカル Docker 起動
+  dev:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit tests
+        run: npm test
+      - name: Local deploy (Docker run)
+        run: |
+          docker build -t local-dev:${GITHUB_SHA} .
+          docker run -d --name local-dev -p 8080:8080 local-dev:${GITHUB_SHA}
+
+  # 2) stage ブランチ：まずテスト（任意の統合テストなど）
+  stage-prepare:
+    if: github.ref == 'refs/heads/stage'
+    needs: dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      # - name: Run integration tests
+      #   run: npm run test:integration
+
+  # 3) stage ブランチ：再利用ワークフロー呼び出しで GCP デプロイ
+  stage-deploy:
+    if: github.ref == 'refs/heads/stage'
+    needs: stage-prepare
+    uses: Keitaro95/React-vite-timer/.github/workflows/reusable.yml@v1
+    with:
+      environment: stage
+      ref: ${{ github.sha }}
+    secrets:
+      WIF_PROVIDER:        ${{ secrets.WIF_PROVIDER }}
+      WIF_SERVICE_ACCOUNT: ${{ secrets.WIF_SA_STAGE }}
+    environment: stage
+
+  # 4) main ブランチ：スモークテスト
+  prod-prepare:
+    if: github.ref == 'refs/heads/main'
+    needs: stage-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run smoke tests
+        run: npm run test:smoke
+
+  # 5) main ブランチ：再利用ワークフロー呼び出しで本番デプロイ
+  prod-deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: prod-prepare
+    uses: Keitaro95/React-vite-timer/.github/workflows/reusable.yml@v1
+    with:
+      environment: production
+      ref: ${{ github.sha }}
+    secrets:
+      WIF_PROVIDER:        ${{ secrets.WIF_PROVIDER }}
+      WIF_SERVICE_ACCOUNT: ${{ secrets.WIF_SA_PROD }}
+    environment: production

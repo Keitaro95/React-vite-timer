@@ -1,9 +1,9 @@
 // configureStoreにreducerを登録
 import { configureStore } from "@reduxjs/toolkit";
 import timerReducer from "../hooks/useTimer.slice.ts";
-import editReducer from "../components/TimeEdit/edit.slice.ts";
+import editReducer from "../components/TimerDisplay/TimeEdit.slice.ts";
 
-const store = configureStore({
+export const store = configureStore({
     reducer: {
         timer: timerReducer,
         edit: editReducer,

@@ -1,11 +1,12 @@
 
-import { HealthReport } from './components/HealthData_/HealthReport'
+import TimerPage from "./components/pages/Page"
+
 import './App.css'
 
 export const App = () => {
   return (
     <>
-      <HealthReport />
+      <TimerPage />
     </>
   )
 }
