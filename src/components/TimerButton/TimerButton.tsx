@@ -1,6 +1,7 @@
 // タイマーのボタン。propsによって、ボタンのUIの種類が変わります
 
 import React from 'react';
+import { Button } from "@chakra-ui/react"
 
 export interface TimerButtonProps {
     onClick: () => void;
@@ -11,7 +12,7 @@ export interface TimerButtonProps {
 
 const TimerButton: React.FC<TimerButtonProps> = ({ onClick, disabled = false, children }) => {
     return (
-        <button
+        <Button
             type="button"
             onClick={onClick}
             disabled={disabled}
@@ -19,7 +20,7 @@ const TimerButton: React.FC<TimerButtonProps> = ({ onClick, disabled = false, ch
             className={`px-4 ${disabled ? 'bg-gray' : 'bg-blue'}`}
             >
             {children}
-        </button>
+        </Button>
     );
 };
 

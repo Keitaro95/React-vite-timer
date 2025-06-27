@@ -2,7 +2,9 @@
 // - TimerButtonControlsでボタンの動きを定義して
 // - TimerButtonでボタンコンポーネントをかく。typeによって展開を変える。
 // - TimerDisplayはタイマー時刻の表示
-import React, { Children, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Box } from "@chakra-ui/react"
+
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from "../../store/store";
 import { startEdit, updateInput, cancelEdit } from './TimeEdit.slice';
@@ -67,7 +69,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ seconds, onSetSeconds }) =>
                     />
                 </ToastPortal>
             )}
-            <div className="text-4xl font-mono p-4">
+            <Box textStyle="7xl">
                 {isEditing && onSetSeconds ? (
                     <input
                         ref={inputRef}
@@ -86,7 +88,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ seconds, onSetSeconds }) =>
                         {pad(minutes)}:{pad(remainderSeconds)}
                     </span>
                 )}
-            </div>
+            </Box>
         </>
     );
 };
