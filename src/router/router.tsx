@@ -1,5 +1,7 @@
+// router.tsx：画面表示を司るrouter。パスによって表示を変えるために存在します。
+
 import { RouteObject } from 'react-router-dom';
-import Root from '../components/Root';
+import { main } from '../main';
 import Login from '../components/Login';
 import Register from '../components/Register';
 import Dashboard from '../pages/Dashboard';
@@ -9,7 +11,7 @@ import DeleteUser from '../components/DeleteUser';
 export const routes: RouteObject[] = [
   {
     path: '/',
-    element: <Root />, // 共通レイアウト（ナビゲーションなど）
+    element: <main />, // 共通レイアウト（ナビゲーションなど）
     children: [
       { index: true, element: <Login /> }, // "/"
       { path: 'register', element: <Register /> }, // "/register"

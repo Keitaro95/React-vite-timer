@@ -1,14 +1,26 @@
-import {onRequest} from "firebase-functions/https";
+// honoが定義したapp を Firebase Functions が処理できる形式に変換しています。
+// 「エントリーポイント」です
+
+import { onRequest } from "firebase-functions/https";
 import { requestHandler } from "./handler";
-import { app } from "./api";
+import  app from "./server";
 import { setGlobalOptions } from "firebase-functions/options";
 
 setGlobalOptions({
   region: "asia-northeast1",
 });
 
+// これにより、https://<project>.cloudfunctions.net/api のようなエンドポイントが作られます。
+// requestHandler(app) によって app を Firebase Functions が処理できる形式に変換しています。
 export const api = onRequest(requestHandler(app));
 
+// 実際に動かすルーティング（APIの中身）は app 側で書く
+// handler を通じて Firebase 用のハンドラ形式に変換
+// これにより、アプリ本体（app）と Firebase 関数のバインディング（index.ts）を分離し、構造をシンプルに保っています。
+
+
+
+// ======================================================
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
