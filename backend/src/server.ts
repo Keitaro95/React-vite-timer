@@ -1,37 +1,43 @@
 // // server.ts
 // // RESTapi処理を書きます
 
-// import { createHonoNodeServer } from '@resolid/react-router-hono/node-server'
-// import * as router from '@react-router/dev/server';
+//  🧰 1. Hono + セッション設定
+// * `hono-sessions` によって、サーバー側で Cookie を発行し、セッション情報（ここでは `user`）を保存します 。
+// * `/api/session` で現在のログイン状態を返します。
+import { Hono } from 'hono';
+import { sessionMiddleware, CookieStore } from 'hono-sessions';
 
+const app = new Hono();
 
-// export default await createHonoNodeServer({
-//     routesModule: router,
-//     getLoadContext() => ({}),
-//     configure(honoApp) {
-//         honoApp.use('X-Powered-By', 'Hono + React Router')
-//         return next()
-//     })
-//     honoApp.get('/api', (c) => c.json({message: 'Hello from Hono!'}))
+app.use('*', sessionMiddleware({
+  store: new CookieStore(),
+  encryptionKey: '32文字以上の乱数',
+  cookieOptions: { httpOnly: true, sameSite: 'lax', path: '/' },
+  expireAfterSeconds: 60 * 60 * 24, // 24時間有効
+}));
 
-import { Hono } from 'hono'
-import { createHonoNodeServer } from '@resolid/react-router-hono/node-server'
-import * as router from '@react-router/dev/server'
-import { api }  from './index'
+app.post('/api/login', async (c) => {
+  const { username, password } = await c.req.parseBody();
+  if (username === 'user' && password === 'pass') {
+    const sess = c.get('session');
+    sess.set('user', { username });
+    return c.json({ ok: true });
+  }
+  return c.json({ ok: false }, 401);
+});
 
-const app = new Hono()
+app.post('/api/logout', (c) => {
+  const sess = c.get('session');
+  sess.delete('user');
+  return c.json({ ok: true });
+});
 
-app.route('/', api);
+app.get('/api/session', (c) => {
+  const sess = c.get('session');
+  return c.json({ user: sess.get('user') || null });
+});
 
-// app を明示的に渡す
-export default await createHonoNodeServer({
-  app,
-  routesModule: router,
-  getLoadContext: () => ({}),
-  configure(honoApp) {
-    honoApp.get('/api', (c) => c.json({ message: 'Hello from Hono!' }))
-  },
-})
+export default app;
 
 
 
